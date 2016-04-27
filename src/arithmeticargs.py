@@ -43,3 +43,9 @@ _parser.add_option("-e", "--encode",
                    help="encode a file. Is the default value",
                    default=True
                    )
+
+_parser.add_option("-t", "--text",
+                   dest="text",
+                   type='string',
+                   help="text to be encoded",
+                   )

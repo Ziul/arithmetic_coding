@@ -1,15 +1,25 @@
 import ipdb
-from math import e
+from math import e, log2, ceil
 from multiprocessing.pool import ThreadPool
 from scipy.integrate import quad
+from decimal import *
 import numpy as np
 from collections import Counter
-from sys import argv
+from sys import argv, stdout
 from arithmeticargs import _parser
 
 _MAX_THREADS = 10
-_PRECISION = 2
+_PRECISION = 3
+_ATOL = 1 / 10**_PRECISION
 _pool = ThreadPool(processes=_MAX_THREADS)
+
+
+class Float(float):
+    """docstring for Float"""
+
+    def __init__(self, arg):
+        super(Float, self).__init__()
+        self.decimal = self.real % 1
 
 
 def laplacian(x, b=1.0):
@@ -51,10 +61,34 @@ def encode(word, symbols):
     return low
 
 
+def decode(number, symbols):
+    word = ''
+    snumber = str(number)
+    while not np.isclose(number, 0, atol=_ATOL):
+        for key in symbols:
+            if symbols[key][0] <= number < symbols[key][1]:
+                # output the symbol
+                if type(key) == int:
+                    word += chr(key)
+                else:
+                    word += key
+                _range = symbols[key][1] - symbols[key][0]
+                # subtract symbol from encoded
+                number -= symbols[key][0]
+                # number = number % 1
+                # divide encoded by range
+                number /= _range
+                snumber = snumber[1:]
+                break
+        if not len(word):
+            raise Exception('Range not found')
+    return word
+
+
 def get_range(p_x, range_min_precessor=0):
-    # return [round(range_min_precessor, _PRECISION),
-    # round(range_min_precessor + p_x, _PRECISION)]
-    return [range_min_precessor, range_min_precessor + p_x]
+    return [round(range_min_precessor, _PRECISION),
+            round(range_min_precessor + p_x, _PRECISION)]
+    # return [range_min_precessor, range_min_precessor + p_x]
 
 
 def set_range(symbols):
@@ -79,7 +113,22 @@ def set_probability(text):
 
 def main():
     (_options, _args) = _parser.parse_args()
-    txt = ' '.join(_args)
+
+    def print(data, end='\n'):
+        # overwrite print
+        if _options.verbose:
+            stdout.write(str(data) + end)
+
+    if not _options.filename:
+        if argv[1]:
+            if _options.text:
+                txt = _options.text
+            else:
+                txt = open(_args[0], "rb",).read()
+        else:
+            _parser.print_help()
+            return
+
     sym = set_probability(txt)
     # print(1.0 - sum(sym.values()))
     sym = set_range(sym)
@@ -87,7 +136,7 @@ def main():
         print(sym)
     result = encode(txt, sym)
     print("%1.95f" % result)
-    # print(result)
+    print(decode(result, sym))
 
 if __name__ == '__main__':
     main()

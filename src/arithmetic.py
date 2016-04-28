@@ -7,6 +7,7 @@ import numpy as np
 from collections import Counter
 from sys import argv, stdout
 from arithmeticargs import _parser
+from pprint import pformat, pprint
 
 _MAX_THREADS = 10
 _PRECISION = 3
@@ -120,10 +121,11 @@ def main():
             stdout.write(str(data) + end)
 
     if not _options.filename:
-        if argv[1]:
+        if len(argv) > 1:
             if _options.text:
                 txt = _options.text
             else:
+                # _options.filename = _args[0]
                 txt = open(_args[0], "rb",).read()
         else:
             _parser.print_help()
@@ -133,7 +135,7 @@ def main():
     # print(1.0 - sum(sym.values()))
     sym = set_range(sym)
     if _options.verbose:
-        print(sym)
+        pprint(sym, indent=4)
     result = encode(txt, sym)
     print("%1.95f" % result)
     print(decode(result, sym))

@@ -1,4 +1,4 @@
-import ipdb
+# import ipdb # to avoid problems with matlab
 from math import e, log2, ceil
 from multiprocessing.pool import ThreadPool
 from scipy.integrate import quad
